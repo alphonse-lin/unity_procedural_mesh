@@ -5,7 +5,7 @@ using UnityEngine;
 using PM.GeometryClass;
 
 [RequireComponent(typeof(MeshFilter),typeof(MeshRenderer))]
-public class ProceduralGrid : MonoBehaviour
+public class ProceduralContinousGrid : MonoBehaviour
 {
     Mesh mesh;
 
