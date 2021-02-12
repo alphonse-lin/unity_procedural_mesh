@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+namespace PM.GeometryClass { 
 public class Triangulator
 {
     private List<Vector2> m_points = new List<Vector2>();
@@ -117,5 +118,6 @@ public class Triangulator
         bCROSScp = bx * cpy - by * cpx;
 
         return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
+    }
     }
 }
