@@ -15,10 +15,11 @@ public class ConvertGeoJSON : MonoBehaviour
 
         var feactureCollection = GeoJsonReader.GetFeatureCollectionFromJson(sr.ReadToEnd());
 
-        for (int i = 0; i < feactureCollection.Count; i++)
+        for (int i = 0; i < 1; i++)
         {
-            var jsonDic = feactureCollection[i].Attributes["function"];
-            Debug.Log(jsonDic.ToString());
+            //var AttributeDic = feactureCollection[i].Attributes["function"];
+            var GeoDic = feactureCollection[i].Geometry;
+            Debug.Log(GeoDic.Coordinates[0]);
         }
     }
 }
