@@ -122,7 +122,7 @@ namespace PM.Application
         private void ApplyMeshMaterial(Mesh mesh)
         {
             MeshRenderer mr = GetComponent<MeshRenderer>();
-            Material newMat = new Material(Shader.Find("Particles/Standard Unlit"));
+            Material newMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
             mr.material = newMat;
         }
     }
