@@ -174,12 +174,41 @@ namespace PM.GeometryClass
 
         #endregion
 
+        public static Mesh RenderToMesh(Vector2[][] jsonResult, string[] jsonHeight, bool invertFace = true)
+        {
+            var vertices = new List<Vector3>();
+            var triangles = new List<int>();
+            var normals = new List<Vector3>();
+
+            int triCount = 0;
+            for (int i = 0; i < jsonResult.Length; i++)
+            {
+                var singleMesh = GenerateMesh.ExtrudeMesh(jsonResult[i], float.Parse(jsonHeight[i])/100, invertFace);
+                vertices.AddRange(singleMesh.vertices);
+                normals.AddRange(singleMesh.normals);
+
+                var temp_triCount = singleMesh.triangles.Length;
+                for (int j = 0; j < temp_triCount; j++)
+                {
+                    triangles.Add(singleMesh.triangles[j] + triCount);
+                }
+                triCount += singleMesh.triangles.Max() + 1;
+
+                Debug.Log(singleMesh.bounds.center);
+            }
+            var allMesh = new Mesh();
+            int[] test = new int[2];
+            allMesh.vertices = vertices.ToArray();
+            allMesh.triangles = triangles.ToArray();
+            allMesh.normals = normals.ToArray();
+            return allMesh;
+        }
 
         /// <summary>
         /// 读取高度，创建mesh extrusion
         /// </summary>
         /// <returns>Mesh</returns>
-        public static Mesh ExtrudeMesh(Vector2[] vertices2D, float extrudeDis, bool invertFaces=false)
+        public static Mesh ExtrudeMesh(Vector2[] vertices2D, float extrudeDis, bool invertFaces= true)
         {
             Mesh extrudeMesh = new Mesh();
 

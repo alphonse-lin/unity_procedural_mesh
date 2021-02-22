@@ -12,56 +12,56 @@ public class BuildingEngine : MonoBehaviour
 {
     private Mesh mesh;
     private MeshFilter filter;
-    private string jsonPath = @"E:\114_temp\018_unity\unityProjects\test_001_procedural_mesh\Assets\Data\building_32650.geojson";
+    private string filePath = "";
     public Material material;
 
     // Start is called before the first frame update
     void Start()
     {
-        //// Create GameObject that will hold a Chunk
-        var buildingsGameObject = new GameObject("Chunk 0,0,0");
-        buildingsGameObject.transform.parent = transform.parent;
-
-        buildingsGameObject.AddComponent<MeshFilter>();
-        buildingsGameObject.AddComponent<MeshRenderer>();
-        buildingsGameObject.GetComponent<MeshRenderer>().material = material;
-
-        filter = buildingsGameObject.GetComponent<MeshFilter>();
-        
-        var vertices2D= ConvertClass.ReadGeoJSONGeometry(jsonPath);
-
-        mesh = RenderToMesh(vertices2D);
-        filter.mesh = mesh;
-
+        StartCoroutine(pause());
     }
 
-    private Mesh RenderToMesh(Vector2[][] jsonResult, bool invertFace=true)
+    private void Update()
     {
-        var vertices = new List<Vector3>();
-        var triangles = new List<int>();
-        var normals = new List<Vector3>();
+        
+        ////// Create GameObject that will hold a Chunk
+        //Debug.Log(filePath);
+        //StartCoroutine(ExtrudeMesh(filePath));
+    }
 
-        int triCount = 0;
-        for (int i = 0; i < jsonResult.Length; i++)
+    IEnumerator pause()
+    {
+        
+        while (filePath.Length<10)
         {
-            var singleMesh = GenerateMesh.ExtrudeMesh(jsonResult[i], 10f, invertFace);
-            vertices.AddRange(singleMesh.vertices);
-            normals.AddRange(singleMesh.normals);
-
-            var temp_triCount = singleMesh.triangles.Length;
-            for (int j = 0; j < temp_triCount; j++)
-            {
-                triangles.Add(singleMesh.triangles[j]+triCount);
-            }
-            triCount += singleMesh.triangles.Max()+1;
-            
-            Debug.Log(singleMesh.bounds.center);
+            Debug.Log("wait");
+            filePath = GameObject.Find("ButtonTest").GetComponent<ButtonClick>().filePath;
+            yield return null;
         }
-        var allMesh = new Mesh();
-        int[] test = new int[2];
-        allMesh.vertices = vertices.ToArray();
-        allMesh.triangles = triangles.ToArray();
-        allMesh.normals = normals.ToArray();
-        return allMesh;
+        Debug.Log("now");
+        yield return ExtrudeMesh(filePath);
+    }
+    IEnumerator ExtrudeMesh(string filePath)
+    {
+
+        if (filePath.Length >= 2)
+        {
+            var buildingsGameObject = new GameObject("Chunk 0,0,0");
+            buildingsGameObject.transform.parent = transform.parent;
+
+            buildingsGameObject.AddComponent<MeshFilter>();
+            buildingsGameObject.AddComponent<MeshRenderer>();
+            buildingsGameObject.GetComponent<MeshRenderer>().material = material;
+
+            filter = buildingsGameObject.GetComponent<MeshFilter>();
+
+            Debug.Log(filePath);
+            var vertices2D = ConvertClass.ReadGeoJSONGeometry(filePath, "brepHeight", out string[] jsonHeight);
+
+            mesh = GenerateMesh.RenderToMesh(vertices2D, jsonHeight);
+            filter.mesh = mesh;
+            yield return null;
+        }
+        
     }
 }
