@@ -7,8 +7,9 @@ using UnityEngine;
 
 namespace PM.GeometryClass
 {
-    public class GenerateMesh
+    public class GenerateMesh : MonoBehaviour
     {
+        #region simple mesh
         /// <summary>
         /// Generate Triangle Mesh in 0,0,0, size 1
         /// </summary>
@@ -171,7 +172,102 @@ namespace PM.GeometryClass
             }
         }
 
-       
+        #endregion
+
+
+        /// <summary>
+        /// 读取高度，创建mesh extrusion
+        /// </summary>
+        /// <returns>Mesh</returns>
+        public static Mesh ExtrudeMesh(Vector2[] vertices2D, float extrudeDis, bool invertFaces=false)
+        {
+            Mesh extrudeMesh = new Mesh();
+
+            var srcMesh = BoundaryPlaneFromPt(vertices2D);
+
+            var precomputedEdges = MeshExtrusion.BuildManifoldEdges(srcMesh);
+            var heightMatrix = CreateHeight(extrudeDis);
+            MeshExtrusion.ExtrudeMesh(srcMesh, extrudeMesh, heightMatrix, precomputedEdges, invertFaces);
+            return extrudeMesh;
+        }
+
+        private static Matrix4x4[] CreateHeight(float height)
+        {
+            Vector4 disVect4 = new Vector4(0, height, 0, 1);
+            Matrix4x4[] matrix = {
+            new Matrix4x4(
+            new Vector4(1,0,0,0),
+            new Vector4(0,1,0,0),
+            new Vector4(0,0,1,0),
+            new Vector4(0,0,0,1)),
+
+            new Matrix4x4(
+            new Vector4(1,0,0,0),
+            new Vector4(0,1,0,0),
+            new Vector4(0,0,1,0),
+            disVect4)
+            };
+
+            return matrix;
+        }
+
+        /// <summary>
+        /// 读取点，并创建Mesh Plane
+        /// </summary>
+        /// <returns>Mesh</returns>
+        public static Mesh BoundaryPlaneFromPt(Vector2[] temp_vertices2D)
+        {
+            // Use the triangulator to get indices for creating triangles
+            var vertices2D = new Vector2[temp_vertices2D.Length-1];
+            for (int i = 0; i < temp_vertices2D.Length-1; i++)
+            {
+                vertices2D[i] = temp_vertices2D[i];
+            }
+            Triangulator tri = new Triangulator(vertices2D);
+            int[] indices = tri.Triangulate();
+
+            // Create the Vector3 vertices
+            Vector3[] vertices = new Vector3[vertices2D.Length];
+            Vector2[] uvs = new Vector2[vertices.Length];
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = new Vector3(vertices2D[i].x, 0, vertices2D[i].y);
+                uvs[i] = new Vector3(vertices2D[i].x, 0, vertices2D[i].y);
+            }
+
+            // Create the mesh
+            Mesh msh = new Mesh();
+            msh.vertices = vertices;
+            msh.triangles = indices;
+            msh.uv = uvs;
+
+            msh.RecalculateNormals();
+            msh.RecalculateBounds();
+            msh.Optimize();
+
+            return msh;
+        }
+
+        #region 通用模块
+        public static Color[] GenerateDefaultMeshColor(Mesh mesh)
+        {
+            Vector3[] vertices = mesh.vertices;
+            var count = vertices.Length;
+            Color[] colors = new Color[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                colors[i] = Color.Lerp(Color.red, Color.green, vertices[i].y);
+            }
+            return colors;
+        }
+
+        public static Material GenerateDefaultMeshMaterial()
+        {
+            return  new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+        }
+
         /// <summary>
         /// Update Mesh
         /// </summary>
@@ -183,9 +279,7 @@ namespace PM.GeometryClass
             mesh.triangles = triangles;
             mesh.RecalculateNormals();
         }
-
-
-
+        #endregion
     }
 
     public static class CubeMeshData
@@ -222,5 +316,7 @@ namespace PM.GeometryClass
             }
             return fv;
         }
+
+
     }
 }

@@ -3,34 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using PM.GeometryClass;
 using System;
+using System.IO;
+using UrbanX.IO.GeoJSON;
+using NetTopologySuite.Geometries;
 
 namespace PM.Application
 {
-    [ExecuteInEditMode]
-    public class PM_Mesh3 : MonoBehaviour
+    //[ExecuteInEditMode]
+    public class PM_Mesh4 : MonoBehaviour
     {
+        [Header("Mesh Options")]
+        [Min(0)]
+        [SerializeField]
         public float extrudeDis = 10f;
+        public Material meshMaterial;
 
+        //private string jsonPath = @"E:\114_temp\018_unity\unityProjects\test_001_procedural_mesh\Assets\Data\building_4326.geojson";
+        private string jsonPath = @"E:\114_temp\018_unity\unityProjects\test_001_procedural_mesh\Assets\Data\building_32650.geojson";
         private bool invertFaces = true;
         private MeshExtrusion.Edge[] precomputedEdges;
-        private Vector2[] vertices2D = new Vector2[] {
-            new Vector2(0,0),
-            new Vector2(0,50),
-            new Vector2(50,50),
-            new Vector2(50,100),
-            new Vector2(0,100),
-            new Vector2(0,150),
-            new Vector2(150,150),
-            new Vector2(150,100),
-            new Vector2(100,100),
-            new Vector2(100,50),
-            new Vector2(150,50),
-            new Vector2(150,0),
-        };
 
         //TODO: 改写成Method
         public void Start()
         {
+            var vertices2D = ReadGeoJSON(jsonPath);
             // Use the triangulator to get indices for creating triangles
             Triangulator tri = new Triangulator(vertices2D);
             int[] indices = tri.Triangulate();
@@ -65,7 +61,8 @@ namespace PM.Application
             MeshFilter filter = gameObject.AddComponent(typeof(MeshFilter)) as MeshFilter;
 
             ApplyMeshMaterial(extrudeMesh);
-            ApplyMeshColor(extrudeMesh);
+            extrudeMesh.Optimize();
+            //ApplyMeshColor(extrudeMesh);
             filter.mesh = extrudeMesh;
         }
 
@@ -75,6 +72,7 @@ namespace PM.Application
 
         }
 
+        #region 创建mesh
         private Matrix4x4[] CreateHeight(float height)
         {
             Vector4 disVect4 = new Vector4(0, height, 0, 1);
@@ -96,18 +94,9 @@ namespace PM.Application
         }
 
         //TODO: 读取高度，创建mesh extrusion
-        private Mesh CreateMesh(Mesh msh, Matrix4x4[] heightMatrix)
+        private void CreateMesh()
         {
-            Mesh extrudeMesh = new Mesh();
-            var srcMesh = msh;
-            precomputedEdges = MeshExtrusion.BuildManifoldEdges(srcMesh);
-            MeshExtrusion.ExtrudeMesh(srcMesh, extrudeMesh, heightMatrix, precomputedEdges, invertFaces);
 
-            //Set up game object with mesh;
-            ApplyMeshMaterial(extrudeMesh);
-            ApplyMeshColor(extrudeMesh);
-
-            return extrudeMesh;
         }
 
         //TODO:读取点，并创建Mesh Plane
@@ -132,8 +121,38 @@ namespace PM.Application
         private void ApplyMeshMaterial(Mesh mesh)
         {
             MeshRenderer mr = GetComponent<MeshRenderer>();
-            Material newMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            //Material newMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            Material newMat = meshMaterial;
             mr.material = newMat;
         }
+        #endregion
+
+        #region 读取geojson
+        private Vector2[] ReadGeoJSON(string jsonFilePath)
+        {
+            StreamReader sr = File.OpenText(jsonFilePath);
+
+            var feactureCollection = GeoJsonReader.GetFeatureCollectionFromJson(sr.ReadToEnd());
+
+            //var AttributeDic = feactureCollection[i].Attributes["function"];
+            var GeoDic = feactureCollection[0].Geometry;
+            var jsonResult = JSONPtToVector2(GeoDic);
+            return jsonResult;
+        }
+
+        private Vector2[] JSONPtToVector2(Geometry GeoDic)
+        {
+            var resultCount = GeoDic.Coordinates.Length;
+            Vector2[] vectArray = new Vector2[resultCount];
+            for (int i = 0; i < resultCount; i++)
+            {
+                var x = float.Parse((GeoDic.Coordinates[i].X/100).ToString());
+                var y = float.Parse((GeoDic.Coordinates[i].Y/100).ToString());
+                vectArray[i] = new Vector2(x, y);
+                Debug.Log(x);
+            }
+            return vectArray;
+        }
+        #endregion
     }
 }
