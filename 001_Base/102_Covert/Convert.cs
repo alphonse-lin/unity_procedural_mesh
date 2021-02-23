@@ -38,6 +38,28 @@ namespace PM.ConvertClass
             return jsonResultGeo;
         }
 
+        public static Vector2[][] ReadGeoJSONGeometry_Fromjson(string json, string attributeName, out string[] jsonAttribute)
+        {
+            var feactureCollection = GeoJsonReader.GetFeatureCollectionFromJson(json);
+            var geoCount = feactureCollection.Count;
+
+
+            Vector2[][] jsonResultGeo = new Vector2[geoCount][];
+            string[] jsonResultAttr = new string[geoCount];
+            for (int i = 0; i < feactureCollection.Count; i++)
+            {
+                var GeoDic = feactureCollection[i].Geometry;
+                var AttributeDic = feactureCollection[i].Attributes[attributeName];
+                Vector2[] singleJsonResult = JSONPtToVector2(GeoDic);
+
+                jsonResultGeo[i] = singleJsonResult;
+                jsonResultAttr[i] = AttributeDic.ToString();
+            }
+
+            jsonAttribute = jsonResultAttr;
+            return jsonResultGeo;
+        }
+
         public static String[] ReadGeoJSONAttribute(string jsonFilePath, string attributeName)
         {
             StreamReader sr = File.OpenText(jsonFilePath);
