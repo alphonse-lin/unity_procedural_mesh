@@ -6,6 +6,7 @@ using System;
 public class TestObj : MonoBehaviour
 {
     private byte[] readResult;
+    public string filePath;
     // Start is called before the first frame update
     void Start()
     {
@@ -19,10 +20,7 @@ public class TestObj : MonoBehaviour
 
     public void GetBase64(string base64Str)
     {
-        byte[] bs = Convert.FromBase64String(base64Str);
-        foreach (var item in bs)
-        {
-            Debug.Log(item);
-        }
+        filePath = base64Str;
+        Debug.Log("得到数据了");
     }
 }

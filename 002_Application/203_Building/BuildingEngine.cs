@@ -35,7 +35,8 @@ public class BuildingEngine : MonoBehaviour
         while (filePath.Length<10)
         {
             Debug.Log("wait");
-            filePath = GameObject.Find("ButtonTest").GetComponent<ButtonClick>().filePath;
+            //filePath = GameObject.Find("TestObj").GetComponent<TestObj>().filePath;
+            Debug.Log(filePath.Length);
             yield return null;
         }
         Debug.Log("now");
@@ -54,14 +55,19 @@ public class BuildingEngine : MonoBehaviour
             buildingsGameObject.GetComponent<MeshRenderer>().material = material;
 
             filter = buildingsGameObject.GetComponent<MeshFilter>();
-
-            Debug.Log(filePath);
-            var vertices2D = ConvertClass.ReadGeoJSONGeometry(filePath, "brepHeight", out string[] jsonHeight);
+            var vertices2D = ConvertClass.ReadGeoJSONGeometry_Unity_Fromjson(filePath, "brepHeight", out string[] jsonHeight);
 
             mesh = GenerateMesh.RenderToMesh(vertices2D, jsonHeight);
             filter.mesh = mesh;
             yield return null;
         }
         
+    }
+
+    public string GetResult(string base64Str)
+    {
+        filePath = base64Str;
+        Debug.Log("得到数据了");
+        return filePath;
     }
 }

@@ -7,6 +7,7 @@ using PM.GeometryClass;
 using PM.ConvertClass;
 using System.Linq;
 using UnityEngine.Networking;
+using System.IO;
 
 public class BuildingEngine_2 : MonoBehaviour
 {
@@ -18,9 +19,25 @@ public class BuildingEngine_2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(LoadResourceCorotine());
+        //StartCoroutine(LoadResourceCorotine());
+        var jsonPath = @"E:\114_temp\018_unity\build_unityProjects\building_32650.geojson";
+        //var jsonPath = @"E:\test.txt";
+        StreamReader sr = File.OpenText(jsonPath);
+        var filePath = sr.ReadToEnd();
 
-        
+        var buildingsGameObject = new GameObject("Chunk 0,0,0");
+        buildingsGameObject.transform.parent = transform.parent;
+
+        buildingsGameObject.AddComponent<MeshFilter>();
+        buildingsGameObject.AddComponent<MeshRenderer>();
+        buildingsGameObject.GetComponent<MeshRenderer>().material = material;
+
+        filter = buildingsGameObject.GetComponent<MeshFilter>();
+
+        var vertices2D = ConvertClass.ReadGeoJSONGeometry_Unity_Fromjson(filePath, "brepHeight",out string[] jsonHeight);
+
+        mesh = GenerateMesh.RenderToMesh(vertices2D, jsonHeight);
+        filter.mesh = mesh;
     }
 
     IEnumerator LoadResourceCorotine()
